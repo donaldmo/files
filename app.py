@@ -6,10 +6,15 @@ from dotenv import load_dotenv
 from langchain.llms import HuggingFaceHub
 from langchain.chains import LLMChain 
 from langchain.prompts import PromptTemplate
+from openai import OpenAI
 
 
 load_dotenv()
 
+client = OpenAI(api_key=st.secrets['OPENAI_API_KEY'])
+
+if 'openai_model' not in st.session_state:
+    st.session_state['openai_model'] = 'gtp-3.5-turbo'
 
 def get_response(ques):
     llm = HuggingFaceHub(
@@ -52,6 +57,11 @@ if __name__ == '__main__':
     if prompt := st.chat_input("What is up?"):
         # answer = get_response(prompt)
 
+        st.session_state.messages.append({
+            'role': 'user',
+            'content': prompt
+        })
+
         with st.chat_message("user"):
             st.markdown(prompt)
 
@@ -74,5 +84,5 @@ if __name__ == '__main__':
             message_placeholder.markdown(full_response)
             
         st.session_state.messages.append({
-            "role": "user", "content": prompt
+            "role": "assistnet", "content": full_response
         })
