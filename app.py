@@ -4,7 +4,8 @@ import time
 
 from dotenv import load_dotenv
 from langchain.llms import HuggingFaceHub
-from langchain.chains import LLMChain 
+from langchain.llms import LlamaCpp
+from langchain.chains import LLMChain
 from langchain.prompts import PromptTemplate
 from openai import OpenAI
 
@@ -17,6 +18,7 @@ if 'openai_model' not in st.session_state:
     st.session_state['openai_model'] = 'gtp-3.5-turbo'
 
 def get_response(ques):
+
     llm = HuggingFaceHub(
         repo_id='mrm8488/t5-base-finetuned-wikiSQL', 
         # model_kwargs={"temperature": 0.5, "max_length": 64}
@@ -33,7 +35,7 @@ def get_response(ques):
 
     llm_chain = LLMChain(prompt=prompt, llm=llm, verbose=True)
 
-    return llm_chain.run(ques)    
+    return llm_chain.run(ques)
 
 
 if __name__ == '__main__':
@@ -55,7 +57,6 @@ if __name__ == '__main__':
             st.markdown(message["content"])
 
     if prompt := st.chat_input("What is up?"):
-        # answer = get_response(prompt)
 
         st.session_state.messages.append({
             'role': 'user',
@@ -66,23 +67,21 @@ if __name__ == '__main__':
             st.markdown(prompt)
 
         with st.chat_message('assistant'):
-            message_placeholder = st.empty()
+            message_placehoder = st.empty()
             full_response = ''
 
-            assistant_response = random.choice([
-                'Hello there! How can I assist you today?',
-                'Hi, Is there anything I can help you with?',
-                'Do you need help?',
-            ])
+            with st.spinner('Thinking...'):
+                response = get_response(
+                    'What is the average of the respondents using a mobile device?'
+                )
+            
+                for chunk in response.split():
+                    full_response += chunk + " "
+                    time.sleep(0.05)
+                    message_placehoder.markdown(full_response + "▌")
 
-            for chunk in assistant_response.split():
-                full_response += chunk + ' '
-                time .sleep(0.05)
-
-                message_placeholder.markdown(full_response + "▌")
-
-            message_placeholder.markdown(full_response)
+            message_placehoder.markdown(full_response)
             
         st.session_state.messages.append({
-            "role": "assistnet", "content": full_response
+            "role": "assistant", "content": full_response
         })
